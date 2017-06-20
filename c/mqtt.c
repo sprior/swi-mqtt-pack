@@ -160,6 +160,29 @@ add_int_option(term_t list, functor_t f, int value) {
 }
 
 static int
+add_nchar_option(term_t list, functor_t f, const void *value, size_t len) {
+  // type is of: PL_NCHARS
+  term_t tail = PL_copy_term_ref(list);
+  term_t head = PL_new_term_ref();
+  int retval=0;
+
+  while(PL_get_list(tail, head, tail)) { 
+     if ( PL_unify_functor(head, f) ) {
+        term_t a = PL_new_term_ref();
+        term_t tmp = PL_new_term_ref();
+        PL_put_atom_nchars(tmp, len, value);
+
+        return (PL_get_arg(1, head, a) && PL_unify(a, tmp));
+     }
+  }
+
+  if ( PL_unify_list(tail, head, tail) ) {
+    return PL_unify_term(head, PL_FUNCTOR, f, PL_NCHARS, len, value);
+  }
+  return FALSE;
+}
+
+static int
 add_char_option(term_t list, functor_t f, const char *value) {
   // type is of: PL_CHARS
   term_t tail = PL_copy_term_ref(list);
@@ -364,12 +387,12 @@ void on_message_callback(struct mosquitto *mosq, void *obj, const struct mosquit
 
   CB_PREPARE_FRAME()
 
-  add_int_option( t1, FUNCTOR_message_id1,  message->mid);
-  add_char_option(t1, FUNCTOR_topic1,       message->topic);
-  add_char_option(t1, FUNCTOR_payload1,     message->payload);
-  add_int_option( t1, FUNCTOR_payload_len1, message->payloadlen);
-  add_int_option( t1, FUNCTOR_qos1,         message->qos);
-  add_int_option( t1, FUNCTOR_retain1,      message->retain);
+  add_int_option(  t1, FUNCTOR_message_id1,  message->mid);
+  add_char_option( t1, FUNCTOR_topic1,       message->topic);
+  add_nchar_option(t1, FUNCTOR_payload1,     message->payload, message->payloadlen);
+  add_int_option(  t1, FUNCTOR_payload_len1, message->payloadlen);
+  add_int_option(  t1, FUNCTOR_qos1,         message->qos);
+  add_int_option(  t1, FUNCTOR_retain1,      message->retain);
   close_list(t1);
 
   CB_CALL_N_CLOSE_FRAME(on_message)
@@ -645,6 +668,7 @@ c_mqtt_pub(term_t conn, term_t topic, term_t payload, term_t options) {
   int mid;
   //int buf_len = 2048;
   //char buf[buf_len];
+  size_t payload_length;
   char* mqtt_topic   = NULL;
   char* mqtt_payload = NULL;
   // char* payload_type = NULL;
@@ -713,7 +737,7 @@ c_mqtt_pub(term_t conn, term_t topic, term_t payload, term_t options) {
       _LOG("--- (f-c) c_mqtt_pub > parsing options done\n");
   }
 
-  if (!PL_get_chars(payload, &mqtt_payload, CVT_WRITE | BUF_MALLOC)) { 
+  if (!PL_get_nchars(payload, &payload_length, &mqtt_payload, CVT_WRITE | BUF_MALLOC)) { 
     result = FALSE;
     goto CLEANUP;
   }
@@ -726,7 +750,7 @@ c_mqtt_pub(term_t conn, term_t topic, term_t payload, term_t options) {
 
   _LOG("--- (f-c) c_mqtt_pub > publish...\n");
   // mosq_rc = mosquitto_publish(m->mosq, &mid, mqtt_topic, strlen(buf), buf, qos, retain);
-  mosq_rc = mosquitto_publish(m->mosq, &mid, mqtt_topic, strlen(mqtt_payload), mqtt_payload, qos, retain);
+  mosq_rc = mosquitto_publish(m->mosq, &mid, mqtt_topic, payload_length, mqtt_payload, qos, retain);
   if (mosq_rc == MOSQ_ERR_SUCCESS) {
     _LOG("--- (f-c) c_mqtt_pub > publish done\n");
     result = TRUE;
