@@ -110,8 +110,6 @@ mqtt_pub(Connection, Topic, Payload, Options) :-
   c_mqtt_pub(Connection, Topic, Payload, Options),
   true.
 
-
-
 % subscribe with: 
 % - topic pattern
 % - qos

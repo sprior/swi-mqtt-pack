@@ -164,7 +164,6 @@ add_nchar_option(term_t list, functor_t f, const void *value, size_t len) {
   // type is of: PL_NCHARS
   term_t tail = PL_copy_term_ref(list);
   term_t head = PL_new_term_ref();
-  int retval=0;
 
   while(PL_get_list(tail, head, tail)) { 
      if ( PL_unify_functor(head, f) ) {
@@ -662,7 +661,7 @@ c_mqtt_disconnect(term_t conn) {
 // in options: [type(bin|char|double|int), qos(0|1|2), retain(true|false)]
 static foreign_t 
 c_mqtt_pub(term_t conn, term_t topic, term_t payload, term_t options) {
-  int result = FALSE;
+  int result = TRUE;
 
   swi_mqtt *m;
   int mid;
@@ -737,25 +736,20 @@ c_mqtt_pub(term_t conn, term_t topic, term_t payload, term_t options) {
       _LOG("--- (f-c) c_mqtt_pub > parsing options done\n");
   }
 
-  if (!PL_get_nchars(payload, &payload_length, &mqtt_payload, CVT_WRITE | BUF_MALLOC)) { 
+  if (!PL_get_nchars(payload, &payload_length, &mqtt_payload, CVT_ATOM|CVT_STRING|CVT_LIST| CVT_EXCEPTION | CVT_WRITE | BUF_MALLOC)) { 
     result = FALSE;
     goto CLEANUP;
   }
 
-  _LOG("--- (f-c) c_mqtt_pub > qos: %d retain: %d payload: %s\n", qos, retain, mqtt_payload);
-
-  
-  //memset(buf, 0, (buf_len+1)*sizeof(char));
-  //snprintf(buf, buf_len, "%s", mqtt_payload);
+  _LOG("--- (f-c) c_mqtt_pub > qos: %d retain: %d \n", qos, retain);
 
   _LOG("--- (f-c) c_mqtt_pub > publish...\n");
-  // mosq_rc = mosquitto_publish(m->mosq, &mid, mqtt_topic, strlen(buf), buf, qos, retain);
   mosq_rc = mosquitto_publish(m->mosq, &mid, mqtt_topic, payload_length, mqtt_payload, qos, retain);
   if (mosq_rc == MOSQ_ERR_SUCCESS) {
     _LOG("--- (f-c) c_mqtt_pub > publish done\n");
-    result = TRUE;
     goto CLEANUP;
   } else {
+    result = FALSE;
     _LOG("--- (f-c) c_mqtt_pub > publish failed rc: %d\n", mosq_rc);
   }
 
@@ -767,7 +761,6 @@ CLEANUP:
 
   return result;
 }
-
 
 static foreign_t 
 c_mqtt_connect(term_t conn, term_t host, term_t port, term_t options) {
