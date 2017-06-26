@@ -658,19 +658,16 @@ c_mqtt_disconnect(term_t conn) {
   return FALSE;
 }
 
-// in options: [type(bin|char|double|int), qos(0|1|2), retain(true|false)]
+// in options: [ qos(0|1|2), retain(true|false)]
 static foreign_t 
 c_mqtt_pub(term_t conn, term_t topic, term_t payload, term_t options) {
   int result = TRUE;
 
   swi_mqtt *m;
   int mid;
-  //int buf_len = 2048;
-  //char buf[buf_len];
   size_t payload_length;
   char* mqtt_topic   = NULL;
   char* mqtt_payload = NULL;
-  // char* payload_type = NULL;
   int qos = 0;
   int retain = 0;
 
@@ -736,7 +733,7 @@ c_mqtt_pub(term_t conn, term_t topic, term_t payload, term_t options) {
       _LOG("--- (f-c) c_mqtt_pub > parsing options done\n");
   }
 
-  if (!PL_get_nchars(payload, &payload_length, &mqtt_payload, CVT_ATOM|CVT_STRING|CVT_LIST| CVT_EXCEPTION | CVT_WRITE | BUF_MALLOC)) { 
+  if (!PL_get_nchars(payload, &payload_length, &mqtt_payload, CVT_ALL | CVT_EXCEPTION | BUF_MALLOC)) { 
     result = FALSE;
     goto CLEANUP;
   }
@@ -757,7 +754,6 @@ c_mqtt_pub(term_t conn, term_t topic, term_t payload, term_t options) {
 CLEANUP:
   PL_free(mqtt_topic);
   PL_free(mqtt_payload);
-  // PL_free(payload_type);
 
   return result;
 }
