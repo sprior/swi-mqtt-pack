@@ -697,7 +697,7 @@ c_mqtt_pub(term_t conn, term_t topic, term_t payload, term_t options) {
       term_t head = PL_new_term_ref();
 
       while(PL_get_list(tail, head, tail)) { 
-        int arity;
+        size_t arity;
         atom_t name;
 
         if ( PL_get_name_arity(head, &name, &arity) && arity == 1 ) { 
@@ -809,7 +809,7 @@ c_mqtt_connect(term_t conn, term_t host, term_t port, term_t options) {
       term_t head = PL_new_term_ref();
 
       while(PL_get_list(tail, head, tail)) { 
-        int arity;
+        size_t arity;
 	atom_t name;
 
         if ( PL_get_name_arity(head, &name, &arity) && arity == 1 ) { 
