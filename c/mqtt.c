@@ -19,7 +19,7 @@
 #define O_PLMT 1
 
 #undef MQTT_DEBUG_FOREIGN
-//#define MQTT_DEBUG_FOREIGN 1
+#define MQTT_DEBUG_FOREIGN 1
 
 #ifdef MQTT_DEBUG_FOREIGN
 #define _LOG(...)    printf(__VA_ARGS__);fflush(stdout);
