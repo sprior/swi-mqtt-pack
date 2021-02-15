@@ -8,7 +8,7 @@ CWFLAGS=-Wall
 CMFLAGS=-fno-strict-aliasing -pthread -fPIC -std=c99 
 CIFLAGS=-I. -Iext/include
 DEFS=
-CFLAGS=$(COFLAGS) $(CWFLAGS) $(CMFLAGS) $(CIFLAGS) $(PKGCFLAGS) $(DEFS) -I$(PROLOG_HOME)/lib/swipl-$(PROLOG_VER)/include
+CFLAGS+=$(COFLAGS) $(CWFLAGS) $(CMFLAGS) $(CIFLAGS) $(PKGCFLAGS) $(DEFS) -I$(PROLOG_HOME)/lib/swipl-$(PROLOG_VER)/include
 CXXFLAGS=$(CFLAGS)
 
 LD=gcc
