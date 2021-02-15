@@ -10,6 +10,7 @@ mqtt_connect/4,
 mqtt_disconnect/1,
 mqtt_reconnect/1,
 mqtt_loop/1,
+mqtt_loop_forever/1,
 mqtt_pub/4,
 mqtt_pub/3,
 mqtt_sub/3,
@@ -40,6 +41,9 @@ pack_version/1
 mqtt_loop(C) :-
  c_mqtt_loop(C).
 
+mqtt_loop_forever(C) :-
+ c_mqtt_loop_forever(C).
+
 mqtt_reconnect(C) :-
  c_mqtt_reconnect(C).
 
@@ -63,12 +67,12 @@ mqtt_connect(Connection, Host, Port) :-
   gensym(mqtt_conn_, A),
   gensym(swi_mqtt_client, Cid),
   
-  mqtt_connect(Connection, Host, Port, [alias(A), client_id(Cid), keepalive(60), is_async(false)]),
+  mqtt_connect(Connection, Host, Port, [alias(A), client_id(Cid), keepalive(60), is_async(false), clean_session(true)]),
   true.
   
 % mqtt_connect(-Connection, +Host, +Port, [Options])
 % options are:  
-% - alias(A), client_id(Cid), keepalive(10), is_async(false)
+% - alias(A), client_id(Cid), keepalive(10), is_async(false), clean_session(true)
 % callbacks:
 % - module()
 % - on_connect() on_disconnect()  on_log() 
